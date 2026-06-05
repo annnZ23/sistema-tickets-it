@@ -1,0 +1,214 @@
+.body {
+  margin: 0;
+  font-family: Arial;
+  background: #f5e8dc;
+}
+
+/* LAYOUT */
+.app {
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 230px;
+  background: white;
+  padding: 20px;
+}
+
+.sidebar .logo {
+  color: #ff8c00;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sidebar li.active {
+  background: #ff8c00;
+  color: white;
+}
+
+.sidebar img {
+  width: 18px;
+}
+
+/* CONTENT */
+.content {
+  flex: 1;
+}
+
+/* TOPBAR */
+.topbar {
+  height: 60px;
+  background: #ff8c00;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.topbar img {
+  width: 20px;
+}
+
+.icon {
+  position: relative;
+  margin-right: 15px;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background: red;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 20px;
+}
+
+.avatar {
+  background: white;
+  color: #ff8c00;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* CARDS */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 15px;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.card h2 {
+  color: #ff8c00;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 15px;
+  padding: 20px;
+}
+
+/* PANEL */
+.panel {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+/* TICKETS */
+.ticket {
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+.ticket.urgente {
+  border-left: 4px solid red;
+}
+
+.ticket.medio {
+  border-left: 4px solid orange;
+}
+
+/* KANBAN */
+.kanban {
+  display: flex;
+  gap: 10px;
+}
+
+.kanban-col {
+  flex: 1;
+  background: #fff3e6;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* CHAT */
+.chat-box {
+  height: 200px;
+  overflow-y: auto;
+  background: #fafafa;
+  padding: 10px;
+}
+
+.msg {
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.msg.sent {
+  background: #ff8c00;
+  color: white;
+  margin-left: auto;
+}
+
+.msg.received {
+  background: #eee;
+}
+
+.chat-input {
+  display: flex;
+  margin-top: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+}
+
+.chat-input button {
+  background: #ff8c00;
+  border: none;
+}
+
+.chat-input img {
+  width: 18px;
+}
+
+/* ESTADO */
+.status span {
+  padding: 5px 8px;
+  border-radius: 6px;
+  margin-right: 5px;
+  background: #eee;
+}
+
+.status .done {
+  background: green;
+  color: white;
+}
+
+.status .active {
+  background: orange;
+  color: white;
+}

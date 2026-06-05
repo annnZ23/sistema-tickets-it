@@ -1,0 +1,287 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+body {
+  margin: 0;
+  background: #FFF3E6;
+  font-family: 'Inter', sans-serif;
+}
+
+/* CONTENEDOR */
+.container {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  position: relative;
+}
+
+/* LOGO */
+.logo {
+  position: absolute;
+  top: 10px;
+  right: 25px;
+  width: 150px;
+}
+
+/* PANEL IZQUIERDO */
+.panel-left {
+  background: #FF8C00;
+  color: white;
+  width: 380px;
+  height: 520px;
+  padding-top: 60px;
+  border-radius: 20px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.icon-circle {
+  width: 95px;
+  height: 95px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-circle img {
+  width: 35px;
+}
+
+/* TITULO */
+.panel-left h2 {
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.subtitle-left {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+/* LINEA */
+.divider-line {
+  width: 35px;
+  height: 2px;
+  background: rgba(255,255,255,0.6);
+  margin: 15px auto 25px;
+}
+
+/* LISTA */
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.features div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.features div:hover {
+  transform: translateX(6px);
+  opacity: 0.9;
+}
+
+.features img {
+  width: 14px;
+}
+
+/* PANEL DERECHO */
+.panel-right {
+  background: #F7F7F7;
+  width: 360px;
+  height: 520px;
+  padding: 35px 30px;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+/* TITULO LOGIN */
+.panel-right h3 {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.panel-right h3 img {
+  width: 18px;
+}
+
+.login-text {
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+}
+
+/* INPUT */
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.input-icon {
+  width: 16px;
+}
+
+.input-group {
+  flex: 1;
+  background: #EBDAC6;
+  padding: 6px 10px;
+  border-radius: 8px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.input-group input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 12px;
+  outline: none;
+}
+
+
+.input-group:hover {
+  background: #f1e3d1;
+}
+
+.input-group:focus-within {
+  border: 2px solid #FF8C00;
+}
+
+/* LABEL */
+.form-label {
+  margin-left: 28px;
+  margin-bottom: 5px;
+  font-size: 11px;
+}
+
+
+.password-group {
+  position: relative;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+
+.options {
+  font-size: 11px;
+}
+
+
+button {
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-login {
+  width: 75%;
+  margin: 20px auto;
+  display: block;
+  background: #FF8C00;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(255,140,0,0.35);
+}
+
+.separator {
+  display: flex;
+  margin: 18px 0;
+}
+
+.separator span {
+  flex: 1;
+  height: 1px;
+  background: #e5e5e5;
+}
+
+.separator span:nth-child(2) {
+  flex: none;
+  margin: 0 10px;
+  font-size: 11px;
+}
+
+.btn-forgot {
+  border: 1px solid #FF8C00;
+  background: transparent;
+  color: #FF8C00;
+  font-size: 12px;
+  padding: 6px;
+  border-radius: 8px;
+  width: 75%;
+  margin: 10px auto;
+  display: block;
+  transition: 0.25s;
+}
+
+
+.btn-forgot:hover {
+  background: #FF8C00;
+  color: white;
+}
+
+.support {
+  text-align: center;
+  font-size: 10px;
+  color: #777;
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-8px); }
+  50% { transform: translateY(0); }
+  70% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}
+
+
+.chat-icon {
+  position: fixed;
+  bottom: 20px;
+  right: 25px;
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 50%;
+  padding: 6px;
+  border: 4px solid #FF8C00;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+  animation: bounce 2.5s infinite;
+}
+
+
+.chat-icon:hover {
+  transform: scale(1.1);
+}

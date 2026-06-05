@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login Inventario</title>
+
+  <!-- Fuente EXACTA del diseño -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- LOGO SUPERIOR -->
+<div class="top-logo">
+  <img src="{{ url_for('static', filename='images/Baprosa logo.png') }}">
+</div>
+
+<div class="main-container">
+
+  <!-- PANEL IZQUIERDO -->
+  <div class="panel left">
+
+    <div class="circle-icon">
+      <img src="{{ url_for('static', filename='images/icon-login.png') }}">
+    </div>
+
+    <h1>Sistema de Inventario</h1>
+    <p class="subtitle">Soporte Técnico IT</p>
+
+    <ul class="features">
+      <li>
+        <img src="{{ url_for('static', filename='images/control de equipo.png') }}">
+        Control de equipos y dispositivos
+      </li>
+      <li>
+        <img src="{{ url_for('static', filename='images/mantenimiento.png') }}">
+        Gestión de mantenimientos
+      </li>
+      <li>
+        <img src="{{ url_for('static', filename='images/seguimiento.png') }}">
+        Seguimiento de incidencias
+      </li>
+    </ul>
+
+  </div>
+
+  <!-- PANEL DERECHO -->
+  <div class="panel right">
+
+    <h2>
+      <img src="{{ url_for('static', filename='images/Seguridad.png') }}">
+      Iniciar Sesión
+    </h2>
+
+    <p class="hint">Ingresa tus credenciales para acceder al sistema</p>
+
+    <label>Usuario</label>
+    <div class="input-box">
+      <img src="{{ url_for('static', filename='images/usuario.png') }}">
+      <input id="username" type="text" placeholder="Usuario">
+    </div>
+
+    <label>Contraseña</label>
+    <div class="input-box">
+      <img src="{{ url_for('static', filename='images/contrasena.png') }}">
+      <input id="password" type="password" placeholder="Contraseña">
+    </div>
+
+    <div class="options">
+      <label><input type="checkbox"> Recordarme</label>
+      <a>¿Olvidaste tu contraseña?</a>
+    </div>
+
+    <button class="primary" onclick="login()">Acceder al Sistema</button>
+    <button class="secondary">Acceder con Directorio Activo</button>
+
+    <p class="help">¿Necesitas ayuda? Contacta al administrador.</p>
+
+  </div>
+
+</div>
+
+<!-- CHAT -->
+<img id="chat-btn" src="{{ url_for('static', filename='images/chat.png') }}">
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+/* CONTENIDO PRINCIPAL */
+.content {
+  flex: 1;
+  padding: 20px;
+  background: #f3ede5;
+}
+
+/* CAJA DEL FORMULARIO */
+.form-box {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 1100px;
+  animation: fadeIn 0.4s ease;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+/* INPUTS */
+input,
+select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #f9fafb;
+  transition: 0.2s;
+}
+
+input:focus,
+select:focus {
+  border-color: #2563eb;
+  background: #fff;
+  outline: none;
+}
+
+/* FULL WIDTH */
+.full {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* TITULOS */
+h3 {
+  margin-top: 25px;
+}
+
+/* ✅ DESCRIPCIÓN CON REACTQUILL */
+.descripcion-editor {
+  margin-top: 20px;
+}
+
+.label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  color: #374151;
+}
+
+/* TOOLBAR DEL EDITOR */
+.ql-toolbar {
+  border-radius: 8px 8px 0 0 !important;
+  background: #f9fafb;
+}
+
+/* CONTENEDOR DEL EDITOR */
+.ql-container {
+  height: 220px !important;
+  border-radius: 0 0 8px 8px;
+}
+
+/* TEXTO DEL EDITOR */
+.ql-editor {
+  font-size: 14px;
+}
+
+/* HOVER */
+.ql-container:hover {
+  border-color: #2563eb;
+}
+
+/* UPLOAD */
+.upload {
+  border: 2px dashed #d1d5db;
+  padding: 40px;
+  text-align: center;
+  margin-top: 15px;
+  color: #6b7280;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.upload:hover {
+  border-color: #ff7c01;
+  background: #f0f6ff;
+}
+
+/* BOTONES */
+.buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: #ff7300;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #d8681d;
+}
+
+.btn-light {
+  background: #e5e7eb;
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: none;
+}
+
+/* ANIMACION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* CONTENEDOR */
+.descripcion-editor {
+  margin-top: 20px;
+}
+
+/* LABEL */
+.label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* TOOLBAR */
+.ql-toolbar {
+  background: #f3f4f6;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid #d1d5db;
+}
+
+/* EDITOR */
+.ql-container {
+  height: 260px;  /* 👈 GRANDE como en tu imagen */
+  border-radius: 0 0 8px 8px;
+  border: 1px solid #d1d5db;
+}
+
+/* TEXTO */
+.ql-editor {
+  font-size: 14px;
+}
+
+/* HOVER */
+.ql-container:hover {
+  border-color: #eb7e25;
+}
+
+
+

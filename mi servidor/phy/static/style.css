@@ -1,0 +1,172 @@
+* {
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #FFF3E6;
+}
+
+/* LOGO */
+.top-logo {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+}
+
+.top-logo img {
+  height: 45px;
+}
+
+/* CONTENEDOR */
+.main-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+}
+
+/* TARJETAS */
+.panel {
+  width: 420px;
+  min-height: 520px;
+  border-radius: 20px;
+  padding: 40px;
+}
+
+.left {
+  background: #FF8C00;
+  color: white;
+  text-align: center;
+}
+
+.right {
+  background: white;
+}
+
+/* IZQUIERDA */
+.circle-icon {
+  background: white;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle-icon img {
+  width: 40px;
+}
+
+.left h1 {
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.features {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.features img {
+  width: 18px;
+}
+
+/* DERECHA */
+.right h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.hint {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+label {
+  font-size: 12px;
+  color: #333;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 15px;
+}
+
+.input-box img {
+  width: 18px;
+  margin-right: 8px;
+}
+
+input {
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.options {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.primary {
+  background: #FF8C00;
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.secondary {
+  width: 100%;
+  margin-top: 10px;
+  background: white;
+  border: 1px solid #FF8C00;
+  color: #FF8C00;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.help {
+  font-size: 12px;
+  text-align: center;
+  margin-top: 15px;
+  color: #666;
+}
+
+/* CHAT */
+#chat-btn {
+  position: fixed;
+  bottom: 25px;
+  left: 25px;
+  width: 60px;
+  cursor: pointer;
+}
