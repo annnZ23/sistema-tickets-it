@@ -1,47 +1,72 @@
 .sidebar {
-  width: 70px;
+  width: 230px;
   height: 100vh;
-  background: #1f2937;
+  background: #f3f3f3;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  color: white;
+  padding: 15px;
+  border-right: 1px solid #ddd;
 }
 
+/* LOGO */
 .logo {
-  padding: 15px;
+  font-size: 22px;
   font-weight: bold;
+  margin-bottom: 20px;
 }
-x
+
+/* TITULO */
+.nav-title {
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+/* MENU */
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 5px;
 }
 
+/* ITEM */
 .menu-item {
-  cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  opacity: 0.6;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #555;
   transition: 0.3s;
 }
 
+/* HOVER SUAVE */
 .menu-item:hover {
-  opacity: 1;
+  background: #e6e6e6;
 }
 
 .menu-item.active {
-  color: white;
-  position: relative;
+  background: #e6dbcd;
+  border-left: 5px solid #ff7a00;
+  color: #000;
 }
 
-.menu-item.active::before {
-  content: "";
-  position: absolute;
-  left: -10px;
-  width: 3px;
-  height: 100%;
-  background: #3b82f6;
+/* ICONOS */
+.menu-item svg {
+  font-size: 16px;
+}
+
+.content {.content #f2e9dc; /* beige claro como tu imagen */
+  padding: 20px;
+  min-height: 100vh;
+}
+.form-box {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 100%;
+
+  /* 🔥 sombra PRO */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }

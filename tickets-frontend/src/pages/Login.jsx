@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ AGREGADO
 import "./Login.css";
 import Chatbot from "./Chatbot";
 
@@ -13,23 +14,46 @@ import userIcon from "../assets/usuario.png";
 import passIcon from "../assets/contraseña.png";
 import chatIcon from "../assets/chat.png";
 
-function Login({ setUsuario, setModulo }) {
+function Login({ setUsuario }) {
+
+  const navigate = useNavigate(); // ✅ AGREGADO
 
   const [showPass, setShowPass] = useState(false);
-  const handleLogin = () => {
-    setUsuario({
-      nombre: "Usuario",
-      rol: "USER"
-    });
-    setModulo("incidencias");
-  };
+  const [usuarioInput, setUsuarioInput] = useState("");
+  const [password, setPassword] = useState("");
 
-  const navegar = (modulo) => {
-    setUsuario({
-      nombre: "Admin IT",
-      rol: "IT"
-    });
-    setModulo(modulo);
+  const handleLogin = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          usuario: usuarioInput.trim(),
+          password: password.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      console.log("DATA:", data);
+
+      if (data && data.ok === true) {
+        // ✅ GUARDAR USUARIO
+        setUsuario(data.user);
+
+        // ✅ 🚀 REDIRECCIÓN AL SISTEMA
+        navigate("/crear");
+
+      } else {
+        alert("❌ Usuario o contraseña incorrectos");
+      }
+
+    } catch (error) {
+      console.error("ERROR:", error);
+      alert("❌ No se pudo conectar con el servidor");
+    }
   };
 
   return (
@@ -46,28 +70,25 @@ function Login({ setUsuario, setModulo }) {
         </div>
 
         <h2>Sistema de Inventario</h2>
-
         <p className="subtitle-left">Soporte Técnico IT</p>
 
         <div className="divider-line"></div>
 
         <div className="features">
-
-          <div onClick={() => navegar("inventario")}>
+          <div>
             <img src={control} alt="" />
             <span>Control de equipos y dispositivos</span>
           </div>
 
-          <div onClick={() => navegar("mantenimiento")}>
+          <div>
             <img src={mantenimiento} alt="" />
             <span>Gestión de mantenimientos</span>
           </div>
 
-          <div onClick={() => navegar("incidencias")}>
+          <div>
             <img src={seguimiento} alt="" />
             <span>Seguimiento de incidencias</span>
           </div>
-
         </div>
 
       </div>
@@ -84,16 +105,22 @@ function Login({ setUsuario, setModulo }) {
           Ingresa tus credenciales para acceder al sistema
         </p>
 
-        {/* USUARIO CORRECTO */}
+        {/* USUARIO */}
         <label className="form-label">Usuario</label>
         <div className="input-row">
           <img src={userIcon} className="input-icon" alt="" />
+
           <div className="input-group">
-            <input type="text" placeholder="Escribe tu usuario" />
+            <input
+              type="text"
+              placeholder="Escribe tu usuario"
+              value={usuarioInput}
+              onChange={(e) => setUsuarioInput(e.target.value)}
+            />
           </div>
         </div>
 
-        {/*PASSWORD CORRECTO */}
+        {/* PASSWORD */}
         <label className="form-label">Contraseña</label>
         <div className="input-row">
           <img src={passIcon} className="input-icon" alt="" />
@@ -102,6 +129,8 @@ function Login({ setUsuario, setModulo }) {
             <input
               type={showPass ? "text" : "password"}
               placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
 
             <span
@@ -143,7 +172,6 @@ function Login({ setUsuario, setModulo }) {
 
       {/* CHATBOT */}
       <img src={chatIcon} alt="chat" className="chat-icon" />
-
       <Chatbot />
 
     </div>
@@ -151,7 +179,3 @@ function Login({ setUsuario, setModulo }) {
 }
 
 export default Login;
-
-
-
-
