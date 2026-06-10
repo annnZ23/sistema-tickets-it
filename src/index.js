@@ -16,6 +16,8 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 app.use(cors());
 app.use(express.json());
+
+
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
@@ -57,7 +59,7 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.post("/api/tickets", async (req, res) => {
-  const { nombre, correo, tipo, descripcion } = req.body;
+  const { nombre, correo, tipo, descripcion, prioridad } = req.body;
 
   try {
     const ticket = await prisma.ticket.create({
@@ -65,16 +67,17 @@ app.post("/api/tickets", async (req, res) => {
         nombre,
         correo,
         tipo,
-        prioridad: obtenerPrioridad(tipo),
-        descripcion,
+        descripcion: descripcion || "",
+        prioridad: prioridad || obtenerPrioridad(tipo),
+        estado: "Creado"
       },
     });
 
     res.json(ticket);
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error al crear ticket" });
+    console.error("ERROR REAL:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -87,28 +90,31 @@ app.get("/api/tickets", async (req, res) => {
 });
 
 
-app.post("/api/messages", async (req, res) => {
-  const { texto, ticketId } = req.body;
 
-  const msg = await prisma.message.create({
+app.post("/api/messages", async (req, res) => {
+  const { texto, ticketId, enviadoPor } = req.body;
+
+  const msg = await prisma.mensaje.create({    // "mensaje" en minúscula
     data: {
       contenido: texto,
       ticketId: Number(ticketId),
+      enviadoPor: enviadoPor || "usuario",     // campo requerido en schema
     },
   });
 
   res.json(msg);
 });
 
+
+// ✅ DESPUÉS
 app.get("/api/messages/:id", async (req, res) => {
-  const mensajes = await prisma.message.findMany({
+  const mensajes = await prisma.mensaje.findMany({   // "mensaje" correcto
     where: { ticketId: Number(req.params.id) },
     orderBy: { id: "asc" }
   });
 
   res.json(mensajes);
 });
-
 app.get("/crear-user", async (req, res) => {
   const existing = await prisma.user.findFirst({
     where: { email: "user@gmail.com" }
@@ -170,9 +176,9 @@ Usuario: ${mensaje}
     });
 
   } catch (error) {
-    console.error(error);
-    res.json({ message: "Error con IA" });
-  }
+  console.error("ERROR REAL PRISMA:", error);
+  res.status(500).json({ error: error.message });
+}
 });
 
 app.listen(PORT, async () => {
