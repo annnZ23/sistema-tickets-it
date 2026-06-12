@@ -160,6 +160,21 @@ app.get("/crear-admin", async (req, res) => {
       role: "ADMIN",
     },
   });
+  app.get("/crear-admin-soporte", async (req, res) => {
+  const hashedPassword = await bcrypt.hash("soporte2024", 10);
+  const user = await prisma.user.upsert({
+    where: { email: "adminsoporte@baprosa.com" },
+    update: {},
+    create: {
+      name: "Admin Soporte",
+      email: "adminsoporte@baprosa.com",
+      password: hashedPassword,
+      role: "ADMIN_SOPORTE",
+      area: null,
+    },
+  });
+  res.json(user);
+});
 
   res.json(user);
 });
