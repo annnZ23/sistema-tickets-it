@@ -1,13 +1,13 @@
 require("dotenv").config();
 
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require("cors");
 const morgan = require("morgan");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const multer = require("multer");
-
-// ─── INICIALIZACIÓN DE EXPRESS ────────────────────────────
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -17,37 +17,25 @@ const prisma = new PrismaClient();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ─── CONFIGURACIÓN DE ALMACENAMIENTO DE MULTER ────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Recuerda crear la carpeta "uploads" en la raíz de tu backend
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+  },
 });
 
 const upload = multer({ storage: storage });
 
-// ─── MIDDLEWARES GLOBALES ─────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-// Servir la carpeta de archivos multimedia de forma estática
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// ─── IMPORTACIÓN Y CONEXIÓN DE ENRUTADORES ────────────────
-const reportRoutes = require("../backend/routes/reportRoutes"); 
-const taskRoutes = require("../backend/routes/task.routes");
-
-app.use("/api/reportes", reportRoutes);
-app.use("/api/tasks", taskRoutes);
-
-
-// ─── FUNCIONES DE CONTROL INTERNO ─────────────────────────
 function obtenerPrioridad(tipo) {
   switch (tipo) {
     case "Incidente": return "Alta";
@@ -58,13 +46,19 @@ function obtenerPrioridad(tipo) {
   }
 }
 
-// ─── ENDPOINTS DE LA API ──────────────────────────────────
+
+
+const reportRoutes = require("../backend/routes/reportRoutes");
+const taskRoutes = require("../backend/routes/task.routes");
+
+app.use("/api/reportes", reportRoutes);
+app.use("/api/tasks", taskRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({ message: "API funcionando" });
 });
 
-// LOGIN
 app.post("/api/login", async (req, res) => {
   const { usuario, password } = req.body;
 
@@ -80,14 +74,12 @@ app.post("/api/login", async (req, res) => {
     if (!valid) return res.json({ ok: false });
 
     res.json({ ok: true, user });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ ok: false });
   }
 });
 
-// TICKETS (Soporta subida opcional de archivos en la creación inicial)
 app.post("/api/tickets", upload.single("file"), async (req, res) => {
   const { nombre, correo, tipo, descripcion, prioridad } = req.body;
 
@@ -110,7 +102,7 @@ app.post("/api/tickets", upload.single("file"), async (req, res) => {
         tipo,
         descripcion: descripcion || "",
         prioridad: prioridad || obtenerPrioridad(tipo),
-        estado: "Creado"
+        estado: "Creado",
       },
     });
 
@@ -120,12 +112,11 @@ app.post("/api/tickets", upload.single("file"), async (req, res) => {
         ticketId: ticket.id,
         enviadoPor: "usuario",
         fileUrl: fileUrl,
-        fileType: fileType
-      }
+        fileType: fileType,
+      },
     });
 
     res.json(ticket);
-
   } catch (error) {
     console.error("ERROR REAL:", error);
     res.status(500).json({ error: error.message });
@@ -140,21 +131,25 @@ app.get("/api/tickets", async (req, res) => {
   res.json(tickets);
 });
 
-// ACTUALIZACIÓN DE ESTADO Y SOLUCIÓN POR EL ADMIN
 app.put("/api/tickets/:id/estado", async (req, res) => {
   const { id } = req.params;
   const { estado, solucion } = req.body;
 
   try {
-    const ticketActual = await prisma.ticket.findUnique({ where: { id: Number(id) } });
-    
+    const ticketActual = await prisma.ticket.findUnique({
+      where: { id: Number(id) },
+    });
+
     const updatedTicket = await prisma.ticket.update({
       where: { id: Number(id) },
-      data: { 
+      data: {
         estado,
-        descripcion: solucion ? `${ticketActual.descripcion}\n\n[SOLUCIÓN TÉCNICA]: ${solucion}` : ticketActual.descripcion
-      }
+        descripcion: solucion
+          ? `${ticketActual.descripcion}\n\n[SOLUCIÓN TÉCNICA]: ${solucion}`
+          : ticketActual.descripcion,
+      },
     });
+
     res.json(updatedTicket);
   } catch (error) {
     console.error(error);
@@ -162,7 +157,6 @@ app.put("/api/tickets/:id/estado", async (req, res) => {
   }
 });
 
-// CHAT DE TICKETS MULTIMEDIA (MESSAGES)
 app.post("/api/messages", upload.single("file"), async (req, res) => {
   const { texto, ticketId, enviadoPor } = req.body;
 
@@ -179,13 +173,13 @@ app.post("/api/messages", upload.single("file"), async (req, res) => {
       else fileType = "document";
     }
 
-    const msg = await prisma.mensaje.create({   
+    const msg = await prisma.mensaje.create({
       data: {
         contenido: texto || "",
         ticketId: Number(ticketId),
-        enviadoPor: enviadoPor || "usuario",    
+        enviadoPor: enviadoPor || "usuario",
         fileUrl: fileUrl,
-        fileType: fileType
+        fileType: fileType,
       },
     });
 
@@ -196,20 +190,17 @@ app.post("/api/messages", upload.single("file"), async (req, res) => {
 });
 
 app.get("/api/messages/:id", async (req, res) => {
-  const mensajes = await prisma.mensaje.findMany({   
+  const mensajes = await prisma.mensaje.findMany({
     where: { ticketId: Number(req.params.id) },
-    orderBy: { id: "asc" }
+    orderBy: { id: "asc" },
   });
 
   res.json(mensajes);
 });
 
-
-// ─── ENDPOINTS SEMILLA ────────────────────────────────────
-
 app.get("/crear-user", async (req, res) => {
   const existing = await prisma.user.findFirst({
-    where: { email: "user@gmail.com" }
+    where: { email: "user@gmail.com" },
   });
 
   if (existing) return res.json(existing);
@@ -230,7 +221,7 @@ app.get("/crear-user", async (req, res) => {
 
 app.get("/crear-admin", async (req, res) => {
   await prisma.user.deleteMany({
-    where: { email: "admin@gmail.com" }
+    where: { email: "admin@gmail.com" },
   });
 
   const hashedPassword = await bcrypt.hash("123456", 10);
@@ -264,7 +255,7 @@ app.get("/crear-admin-soporte", async (req, res) => {
 
 app.get("/crear-ana", async (req, res) => {
   await prisma.user.deleteMany({
-    where: { email: "a.zepeda@Baprosa.com" }
+    where: { email: "a.zepeda@Baprosa.com" },
   });
 
   const hashedPassword = await bcrypt.hash("123456", 10);
@@ -274,35 +265,36 @@ app.get("/crear-ana", async (req, res) => {
       name: "Ana Zepeda",
       email: "a.zepeda@Baprosa.com",
       password: hashedPassword,
-      role: "USER", 
+      role: "USER",
     },
   });
 
   res.json({ message: "Usuario de pruebas 'Ana Zepeda' creado con éxito", user });
 });
 
-
-// ─── INTEGRACIÓN CHATBOT BAPROCHAT (GEMINI) ────────────────
-
 app.post("/api/chat", async (req, res) => {
   try {
     const mensaje = (req.body.mensaje || "").toLowerCase();
 
-    if (mensaje.includes("crear ticket") || mensaje.includes("reportar") || mensaje.includes("falla") || mensaje.includes("error")) {
-      
+    if (
+      mensaje.includes("crear ticket") ||
+      mensaje.includes("reportar") ||
+      mensaje.includes("falla") ||
+      mensaje.includes("error")
+    ) {
       const ticketAutomatico = await prisma.ticket.create({
         data: {
           nombre: "BaproChat IA",
-          correo: "baprochat@baprosa.com", 
+          correo: "baprochat@baprosa.com",
           tipo: "Incidente",
           descripcion: `Ticket de contingencia autogenerado desde el Chatbot de asistencia. Detalle inicial: "${req.body.mensaje}"`,
           prioridad: "Alta",
-          estado: "Creado"
-        }
+          estado: "Creado",
+        },
       });
 
       return res.json({
-        message: `He detectado que experimentas un problema técnico complejo. Para garantizar tu soporte, he generado automáticamente el Ticket corporativo #${ticketAutomatico.id} en nuestro panel de IT Baprosa. ¡Nuestros ingenieros ya han sido notificados!`
+        message: `He detectado que experimentas un problema técnico complejo. Para garantizar tu soporte, he generado automáticamente el Ticket corporativo #${ticketAutomatico.id} en nuestro panel de IT Baprosa. ¡Nuestros ingenieros ya han sido notificados!`,
       });
     }
 
@@ -320,69 +312,46 @@ app.post("/api/chat", async (req, res) => {
     res.json({
       message: response.text(),
     });
-
   } catch (error) {
     console.error("ERROR REAL PRISMA EN CHATBOT:", error);
     res.status(500).json({ error: error.message });
   }
 });
 
-
-// ─── INICIALIZACIÓN DEL SERVIDOR ──────────────────────────
-app.listen(PORT, async () => {
-  try {
-    await prisma.$connect();
-    console.log(" Base de Datos SQLite Conectada Correctamente.");
-    console.log(`Servidor de Baprosa activo en: http://localhost:${PORT}`);
-  } catch (error) {
-    console.error(" Error Crítico al conectar la Base de Datos:", error);
-  }
-});
-
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Crear el servidor HTTP usando Express
 const server = http.createServer(app);
 
-// Inicializar Socket.io y permitir conexiones desde tu Frontend de Vite
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Puerto de tu frontend
-    methods: ["GET", "POST"]
-  }
+    origin: "http://localhost:5176",
+    methods: ["GET", "POST"],
+  },
 });
 
-// Lógica de Conexiones en Tiempo Real
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
   console.log(`🔌 Usuario conectado: ${socket.id}`);
 
-  // 1. Unirse a una sala específica de un área IT
-  socket.on('join_area', (areaName) => {
+  socket.on("join_area", (areaName) => {
     socket.join(areaName);
     console.log(`👥 Usuario se unió al canal de área: ${areaName}`);
   });
 
-  // 2. Escuchar cuando alguien envía un mensaje en su área
-  socket.on('send_message', (data) => {
-    // data debe incluir: { area, text, sender, timestamp }
-    // Retransmitir el mensaje únicamente a los miembros que están en esa misma área
-    io.to(data.area).emit('receive_message', data);
+  socket.on("send_message", (data) => {
+    io.to(data.area).emit("receive_message", data);
   });
 
-  socket.on('disconnect', () => {
+  socket.on("disconnect", () => {
     console.log(`Usuario desconectado: ${socket.id}`);
   });
 });
 
 
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(` Servidor corriendo en http://localhost:${PORT}`);
+
+server.listen(PORT, async () => {
+  try {
+    await prisma.$connect();
+    console.log(" Base de Datos SQLite Conectada Correctamente.");
+    console.log(` Servidor de Baprosa activo en: http://localhost:${PORT}`);
+  } catch (error) {
+    console.error(" Error Crítico al conectar la Base de Datos:", error);
+  }
 });
