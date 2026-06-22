@@ -6,8 +6,6 @@ async function obtenerEstadisticasAdmin(req, res) {
     const totalTickets = await prisma.ticket.count();
     const enProceso = await prisma.ticket.count({ where: { estado: "Creado" } });
     const resueltos = await prisma.ticket.count({ where: { estado: "Resuelto" } });
-
-    // Agrupación por tipo de incidente para tus métricas en Baprosa
     const porArea = await prisma.ticket.groupBy({
       by: ['tipo'], 
       _count: { id: true },
@@ -18,7 +16,6 @@ async function obtenerEstadisticasAdmin(req, res) {
       where: { correo: "baprochat@baprosa.com" } 
     });
 
-    // Devolvemos contadores explícitos y los strings de variaciones fijas del diseño
     res.json({ 
       totalTickets,
       enProceso,
@@ -38,7 +35,7 @@ async function obtenerEstadisticasAdmin(req, res) {
   }
 }
 
-// Endpoint para listar el historial en la sección de Reportes
+
 async function obtenerHistorialFinalizados(req, res) {
   try {
     const finalizados = await prisma.ticket.findMany({
@@ -53,7 +50,6 @@ async function obtenerHistorialFinalizados(req, res) {
 
 async function exportarExcelFiltros(req, res) {
   try {
-    // Aquí puedes retornar la lista de resueltos para exportar
     const tickets = await prisma.ticket.findMany({
       where: { estado: "Resuelto" },
       orderBy: { id: "desc" }

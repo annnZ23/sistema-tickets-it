@@ -16,7 +16,7 @@ model User {
   email     String
   role      String
 
-  tickets   Ticket[]   // ✅ relación con tickets
+  tickets   Ticket[]   // relación con tickets
   posts     Post[]
 
   createdAt DateTime @default(now())
@@ -25,37 +25,42 @@ model User {
   @@map("users")
 }
 
-// ─── TICKETS (MEJORADO) ✅
+// ─── TICKETS (CORREGIDO Y MEJORADO) ───────────────────────────
 model Ticket {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   nombre      String
   correo      String
   tipo        String
   prioridad   String
-  estado      String   @default("Creado")
+  estado      String    @default("Creado")
   descripcion String?
 
-  //  NUEVO
+  // Tiempos de control
+  creadoAt    DateTime  @default(now())   // Hora de generación del ticket
+  vistoAt     DateTime?                   // Hora en que el asesor lo abrió para revisar
+
+  // Relación con el Usuario/Asesor
   usuarioId   Int?
-  usuario     User? @relation(fields: [usuarioId], references: [id])
+  usuario     User?     @relation(fields: [usuarioId], references: [id])
 
   // CHAT
   mensajes    Mensaje[]
-
-  creadoAt    DateTime @default(now())
 }
 
-// ─── MENSAJES (CHAT) 
+// ─── MENSAJES (CHAT MEJORADO) ───────────────────────────
 model Mensaje {
-  id        Int      @id @default(autoincrement())
-  contenido String
+  id          Int      @id @default(autoincrement())
+  contenido   String?  // Opcional por si solo envían un archivo
 
-  ticketId  Int
-  ticket    Ticket @relation(fields: [ticketId], references: [id])
+  // CAMPOS PARA ARCHIVOS MULTIMEDIA
+  fileUrl     String?  // Ruta del archivo en el servidor (ej. "/uploads/foto.png")
+  fileType    String?  // Tipo: "image", "audio", "document" o null si es solo texto
 
-  enviadoPor String  // "usuario" o "soporte"
+  ticketId    Int
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
 
-  creadoAt  DateTime @default(now())
+  enviadoPor  String   // "usuario" o "soporte"
+  creadoAt    DateTime @default(now())
 }
 
 // ─── POSTS ───────────────────────────
@@ -69,7 +74,21 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("posts")
+}
+
+// ─── ASIGNACIÓN DE TAREAS IT ───────────────────────────
+model Task {
+  id        Int      @id @default(autoincrement())
+  titulo    String
+  encargado String   // Nombre del asesor (ej. "Ana Zepeda")
+  correo    String   // Email del asesor asignado para validar su sesión
+  area      String   // Area/Departamento IT
+  prioridad String   // "Alta", "Media", o "Baja"
+  vence     String   // Fecha de vencimiento (ej. "20 Dic 2026")
+  createdAt DateTime @default(now())
+
+  @@map("tasks")
 }
