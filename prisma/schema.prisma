@@ -3,92 +3,198 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite" 
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// ─── USUARIO ───────────────────────────
-model User {
+enum Role {
+  SUPERADMIN
+  ADMIN
+  USER
+}
+
+model Area {
   id        Int      @id @default(autoincrement())
-  username  String?  @unique
-  password  String
-  name      String
-  email     String
-  role      String
-
-  tickets   Ticket[]   // relación con tickets
-  posts     Post[]
-
+  nombre    String   @unique
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  usuarios  User[]
+  tasks     Task[]
+
+  @@map("areas")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  password      String
+  name          String
+  email         String   @unique
+  role          Role
+  areaId        Int?
+  area          Area?    @relation(fields: [areaId], references: [id])
+  areaEmpresa   String?
+  activo        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ticketsCreados   Ticket[]         @relation("TicketCreador")
+  ticketsAsignados TicketAsignado[]
+  tareasAsignadas  Task[]           @relation("TaskEncargado")
+  movimientos      Movimiento[]
 
   @@map("users")
 }
 
-// ─── TICKETS (CORREGIDO Y MEJORADO) ───────────────────────────
-model Ticket {
+model Categoria {
+  id            Int            @id @default(autoincrement())
+  nombre        String         @unique
+  subcategorias Subcategoria[]
+  tickets       Ticket[]
+  articulos     ArticuloKB[]
+
+  @@map("categorias")
+}
+
+model Subcategoria {
   id          Int       @id @default(autoincrement())
   nombre      String
-  correo      String
-  tipo        String
-  prioridad   String
-  estado      String    @default("Creado")
-  descripcion String?
+  categoriaId Int
+  categoria   Categoria @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  tickets     Ticket[]
 
-  // Tiempos de control
-  creadoAt    DateTime  @default(now())   // Hora de generación del ticket
-  vistoAt     DateTime?                   // Hora en que el asesor lo abrió para revisar
-
-  // Relación con el Usuario/Asesor
-  usuarioId   Int?
-  usuario     User?     @relation(fields: [usuarioId], references: [id])
-
-  // CHAT
-  mensajes    Mensaje[]
+  @@unique([categoriaId, nombre])
+  @@map("subcategorias")
 }
 
-// ─── MENSAJES (CHAT MEJORADO) ───────────────────────────
+model SLA {
+  id             Int    @id @default(autoincrement())
+  prioridad      String @unique
+  horasRespuesta Float
+
+  @@map("sla_configuracion")
+}
+
+model Ticket {
+  id             Int       @id @default(autoincrement())
+  nombre         String
+  correo         String
+  tipo           String
+  prioridad      String
+  estado         String    @default("Creado")
+  descripcion    String?
+  area           String?
+  origen         String    @default("WEB")
+
+  categoriaId    Int?
+  categoria      Categoria?    @relation(fields: [categoriaId], references: [id])
+  subcategoriaId Int?
+  subcategoria   Subcategoria? @relation(fields: [subcategoriaId], references: [id])
+
+  fechaLimite    DateTime?
+  enRiesgo       Boolean   @default(false)
+
+  horasEstimadasAsesor Float?
+  fechaLimiteAsesor    DateTime?
+
+  usuarioId      Int?
+  usuario        User?     @relation("TicketCreador", fields: [usuarioId], references: [id])
+
+  asignados      TicketAsignado[]
+  mensajes       Mensaje[]
+  encuesta       EncuestaSatisfaccion?
+
+  creadoAt       DateTime  @default(now())
+  vistoAt        DateTime?
+  resueltoAt     DateTime?
+
+  @@map("tickets")
+}
+
+model TicketAsignado {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  adminId    Int
+  admin      User     @relation(fields: [adminId], references: [id])
+  asignadoAt DateTime @default(now())
+
+  @@unique([ticketId, adminId])
+  @@map("tickets_asignados")
+}
+
+model EncuestaSatisfaccion {
+  id                  Int       @id @default(autoincrement())
+  ticketId            Int       @unique
+  ticket              Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  calificacion        Int?
+  comentario          String?
+  estado              String    @default("Pendiente")
+  enviadaAt           DateTime  @default(now())
+  recordatorioEnviado Boolean   @default(false)
+  respondidaAt        DateTime?
+
+  @@map("encuestas_satisfaccion")
+}
+
 model Mensaje {
-  id          Int      @id @default(autoincrement())
-  contenido   String?  // Opcional por si solo envían un archivo
+  id         Int      @id @default(autoincrement())
+  contenido  String?
+  fileUrl    String?
+  fileType   String?
+  ticketId   Int
+  enviadoPor String
+  creadoAt   DateTime @default(now())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
-  // CAMPOS PARA ARCHIVOS MULTIMEDIA
-  fileUrl     String?  // Ruta del archivo en el servidor (ej. "/uploads/foto.png")
-  fileType    String?  // Tipo: "image", "audio", "document" o null si es solo texto
-
-  ticketId    Int
-  ticket      Ticket   @relation(fields: [ticketId], references: [id])
-
-  enviadoPor  String   // "usuario" o "soporte"
-  creadoAt    DateTime @default(now())
+  @@map("mensajes")
 }
 
-// ─── POSTS ───────────────────────────
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@map("posts")
-}
-
-// ─── ASIGNACIÓN DE TAREAS IT ───────────────────────────
 model Task {
-  id        Int      @id @default(autoincrement())
-  titulo    String
-  encargado String   // Nombre del asesor (ej. "Ana Zepeda")
-  correo    String   // Email del asesor asignado para validar su sesión
-  area      String   // Area/Departamento IT
-  prioridad String   // "Alta", "Media", o "Baja"
-  vence     String   // Fecha de vencimiento (ej. "20 Dic 2026")
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  titulo      String
+  descripcion String?
+  areaId      Int?
+  area        Area?    @relation(fields: [areaId], references: [id])
+  prioridad   String
+  estado      String   @default("Pendiente")
+  vence       DateTime
+ completadaAt DateTime?
+ 
+  encargadoId Int?
+  encargado   User?    @relation("TaskEncargado", fields: [encargadoId], references: [id])
+
+  createdAt   DateTime @default(now())
 
   @@map("tasks")
+}
+
+model ArticuloKB {
+  id               Int        @id @default(autoincrement())
+  titulo           String
+  contenido        String
+  palabrasClave    String?
+  categoriaId      Int?
+  categoria        Categoria? @relation(fields: [categoriaId], references: [id])
+  vistas           Int        @default(0)
+  resolvioProblema Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@map("articulos_kb")
+}
+
+model Movimiento {
+  id        Int      @id @default(autoincrement())
+  accion    String
+  entidad   String?
+  entidadId Int?
+  detalle   String?
+
+  usuarioId Int?
+  usuario   User?    @relation(fields: [usuarioId], references: [id])
+
+  creadoAt  DateTime @default(now())
+
+  @@map("movimientos")
 }

@@ -1,129 +1,84 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { Pool } = require("pg");
-
-//CARGAR .env
+const { PrismaClient } = require("@prisma/client"); 
 require("dotenv").config();
-console.log("API KEY:", process.env.OPENAI_API_KEY);
 
-//IA
-const OpenAI = require("openai");
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY 
-});
-
+const prisma = new PrismaClient(); 
 const app = express();
 const PORT = 3000;
+const OpenAI = require("openai");
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(cors());
 app.use(express.json());
 
-//CONEXIÓN A POSTGRESQL
-const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "mi_primera_bd",
-  password: "1234",
-  port: 5432,
-});
-
 /* ========= LOGIN ========= */
 app.post("/api/login", async (req, res) => {
   const { usuario, password } = req.body;
-
   try {
-    const result = await pool.query(
-      "SELECT * FROM usuarios WHERE usuario = $1 AND password = $2",
-      [usuario, password]
-    );
+    // Ajustado a prisma.user (singular según tu schema)
+    const user = await prisma.user.findFirst({
+      where: { username: usuario, password: password }
+    });
 
-    if (result.rows.length > 0) {
-      return res.json({ ok: true, user: result.rows[0] });
-    }
-
+    if (user) return res.json({ ok: true, user });
     res.json({ ok: false });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ ok: false });
   }
 });
 
-
+/* ========= CHAT E IA ========= */
 app.post("/api/chat", async (req, res) => {
   const { mensaje, usuario, crearTicket } = req.body;
-
   try {
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Eres BaproChat." },
+        { role: "user", content: mensaje }
+      ]
+    });
 
-    //RESPUESTA IA
-const aiResponse = await openai.chat.completions.create({
-  model: "gpt-4o-mini",
-  messages: [
-    {
-      role: "system",
-      content: `Eres BaproChat. Responde así:
-📌 Problema:
-✅ Paso 1
-✅ Paso 2
-✅ Paso 3
-❓ ¿Se solucionó?`
-    },
-    {
-      role: "user",
-      content: mensaje
-    }
-  ]
-});
+    const respuestaIA = aiResponse.choices[0].message.content;
 
-const respuestaIA = aiResponse.choices[0].message.content;
-
-
-    //  SI NO SE RESOLVIÓ → CREAR TICKET
     if (crearTicket) {
-
-      const result = await pool.query(
-        "INSERT INTO tickets (nombre, correo, estado) VALUES ($1, $2, $3) RETURNING *",
-        [
-          mensaje,
-          usuario?.correo || "sin correo",
-          "Pendiente"
-        ]
-      );
-
-      return res.json({
-        message: "✅ Ticket generado. Un asesor te ayudará.",
-        ticket: result.rows[0]
+      // Ajustado a prisma.ticket
+      const ticket = await prisma.ticket.create({
+        data: {
+          nombre: mensaje,
+          correo: usuario?.correo || "sin correo",
+          estado: "Pendiente",
+          tipo: "consulta", // Añadido campo requerido por tu schema
+          prioridad: "baja" // Añadido campo requerido por tu schema
+        }
       });
+      return res.json({ message: "✅ Ticket generado.", ticket });
     }
 
-    // ✅ RESPUESTA NORMAL
-    res.json({
-      message: respuestaIA,
-      necesitaConfirmacion: true
-    });
-
+    res.json({ message: respuestaIA, necesitaConfirmacion: true });
   } catch (error) {
-    console.error("ERROR IA:", error);
-    res.status(500).json({
-      message: "❌ Error con la IA"
-    });
+    console.error(error);
+    res.status(500).json({ message: "❌ Error con la IA" });
   }
 });
 
 /* ========= TICKETS ========= */
 app.post("/api/tickets", async (req, res) => {
   const { nombre, correo } = req.body;
-
   try {
-    const result = await pool.query(
-      "INSERT INTO tickets (nombre, correo, estado) VALUES ($1, $2, $3) RETURNING *",
-      [nombre, correo, "Pendiente"]
-    );
-
-    res.json(result.rows[0]);
-
+    const ticket = await prisma.ticket.create({
+      data: { 
+        nombre: nombre, 
+        correo: correo, 
+        estado: "Pendiente",
+        tipo: "general",
+        prioridad: "normal"
+      }
+    });
+    res.json(ticket);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al crear ticket" });
@@ -132,24 +87,16 @@ app.post("/api/tickets", async (req, res) => {
 
 app.get("/api/tickets", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM tickets");
-    res.json(result.rows);
-
+    const tickets = await prisma.ticket.findMany();
+    res.json(tickets);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Error al obtener tickets" });
   }
 });
 
-/* ========= FRONTEND ========= */
 app.use(express.static(path.join(__dirname, "../tickets-frontend/dist")));
-
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../tickets-frontend/dist/index.html"));
 });
 
-/* ========= START ========= */
-app.listen(PORT, () => {
-
-  console.log(` Servidor activo en http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Servidor activo en http://localhost:${PORT}`));

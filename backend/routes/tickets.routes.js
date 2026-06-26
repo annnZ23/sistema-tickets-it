@@ -1,27 +1,13 @@
 const express = require("express");
-const {
-  crearTicket,
-  obtenerTickets,
-  actualizarEstado
-} = require("./tickets.data");
-
 const router = express.Router();
+const ticketController = require("../controllers/ticketController");
+const { verificarToken } = require("../../src/middleware/auth");
 
-
-router.post("/", (req, res) => {
-  const ticket = crearTicket(req.body);
-  res.json(ticket);
-});
-
-
-router.get("/", (req, res) => {
-  res.json(obtenerTickets());
-});
-
-router.put("/:id", (req, res) => {
-  const { estado } = req.body;
-  const ticket = actualizarEstado(req.params.id, estado);
-  res.json(ticket);
-});
+router.post("/", ticketController.crearTicket);
+router.get("/", verificarToken, ticketController.obtenerTickets);
+router.put("/:id", verificarToken, ticketController.actualizarEstado);
+router.put("/:id/tiempo-estimado", verificarToken, ticketController.declararTiempoEstimado);
+router.post("/:ticketId/encuesta", ticketController.responderEncuesta);
 
 module.exports = router;
+
