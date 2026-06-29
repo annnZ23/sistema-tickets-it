@@ -20,6 +20,7 @@ model Area {
 
   usuarios  User[]
   tasks     Task[]
+  subTareas SubTarea[]
 
   @@map("areas")
 }
@@ -42,6 +43,9 @@ model User {
   ticketsAsignados TicketAsignado[]
   tareasAsignadas  Task[]           @relation("TaskEncargado")
   movimientos      Movimiento[]
+
+  subTareasCreadas   SubTarea[] @relation("SubTareasCreadas")
+  subTareasRecibidas SubTarea[] @relation("SubTareasRecibidas")
 
   @@map("users")
 }
@@ -151,16 +155,16 @@ model Mensaje {
 }
 
 model Task {
-  id          Int      @id @default(autoincrement())
-  titulo      String
-  descripcion String?
-  areaId      Int?
-  area        Area?    @relation(fields: [areaId], references: [id])
-  prioridad   String
-  estado      String   @default("Pendiente")
-  vence       DateTime
- completadaAt DateTime?
- 
+  id           Int       @id @default(autoincrement())
+  titulo       String
+  descripcion  String?
+  areaId       Int?
+  area         Area?     @relation(fields: [areaId], references: [id])
+  prioridad    String
+  estado       String    @default("Pendiente")
+  vence        DateTime
+  completadaAt DateTime?
+
   encargadoId Int?
   encargado   User?    @relation("TaskEncargado", fields: [encargadoId], references: [id])
 
@@ -182,6 +186,43 @@ model ArticuloKB {
   updatedAt        DateTime   @updatedAt
 
   @@map("articulos_kb")
+}
+
+model SubTarea {
+  id          Int     @id @default(autoincrement())
+  titulo      String
+  descripcion String?
+
+  // Quién la crea y quién la recibe (ambos ADMIN, libremente)
+  asignadorId Int
+  asignador   User    @relation("SubTareasCreadas", fields: [asignadorId], references: [id])
+
+  receptorId Int
+  receptor   User @relation("SubTareasRecibidas", fields: [receptorId], references: [id])
+
+  // Contexto: de qué área/chat surgió (opcional, por si se crea fuera del chat en el futuro)
+  areaId Int?
+  area   Area? @relation(fields: [areaId], references: [id])
+
+  // Archivo adjunto (excel, documento, audio, etc.)
+  archivoUrl    String?
+  archivoNombre String?
+  archivoTipo   String? // mime type, ej: "application/vnd.ms-excel", "audio/mpeg"
+
+  fechaLimite  DateTime?
+  estado       EstadoSubTarea @default(Pendiente)
+  completadaAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sub_tareas")
+}
+
+enum EstadoSubTarea {
+  Pendiente
+  EnProceso
+  Completada
 }
 
 model Movimiento {

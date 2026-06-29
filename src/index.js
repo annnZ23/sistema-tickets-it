@@ -14,7 +14,6 @@ const PORT = process.env.PORT || 3000;
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
-
 const { verificarToken, permitirRoles } = require("./middleware/auth");
 
 const storage = multer.diskStorage({
@@ -37,9 +36,13 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 const reportRoutes = require("../backend/routes/reportRoutes");
 const taskRoutes = require("../backend/routes/task.routes");
 const ticketRoutes = require("../backend/routes/tickets.routes");
+const usuariosRoutes = require("../backend/routes/usuarios.routes");
+const areasRoutes = require("../backend/routes/areas.routes");
 app.use("/api/reportes", reportRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/tickets", ticketRoutes);
+app.use("/api/usuarios", usuariosRoutes);
+app.use("/api/areas-it", areasRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API funcionando desde src/" });
@@ -71,7 +74,7 @@ app.post("/api/login", async (req, res) => {
     if (!valid) {
       return res.json({ ok: false, message: "Contraseña incorrecta" });
     }
-    
+
     const areaNombre = user.area?.nombre || user.areaEmpresa || null;
 
     const token = jwt.sign(
@@ -99,6 +102,37 @@ app.post("/api/login", async (req, res) => {
 });
 
 const server = http.createServer(app);
+
+// === SOCKET.IO ===
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log(`Socket conectado: ${socket.id}`);
+
+  socket.on("join_room", (roomName) => {
+    socket.join(roomName);
+    console.log(`Socket ${socket.id} se unió a la sala: ${roomName}`);
+  });
+
+  socket.on("leave_room", (roomName) => {
+    socket.leave(roomName);
+    console.log(`Socket ${socket.id} salió de la sala: ${roomName}`);
+  });
+
+  socket.on("send_message", (messageData) => {
+    if (!messageData?.room) return;
+    io.to(messageData.room).emit("receive_message", messageData);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`Socket desconectado: ${socket.id}`);
+  });
+});
 server.listen(PORT, async () => {
   try {
     await prisma.$connect();

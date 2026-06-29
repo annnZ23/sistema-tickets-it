@@ -126,8 +126,6 @@ exports.obtenerTickets = async (req, res) => {
   }
 };
 
-// El asesor declara su propio tiempo estimado al tomar el ticket.
-// No reemplaza el SLA general, es un compromiso adicional más corto (o igual).
 exports.declararTiempoEstimado = async (req, res) => {
   try {
     const { id } = req.params;
@@ -166,8 +164,6 @@ exports.declararTiempoEstimado = async (req, res) => {
   }
 };
 
-// Actualizar estado del ticket. Al marcarlo "Resuelto", se crea la
-// encuesta de satisfacción y se notifica al empleado por correo.
 exports.actualizarEstado = async (req, res) => {
   try {
     const { id } = req.params;
@@ -229,7 +225,6 @@ exports.actualizarEstado = async (req, res) => {
   }
 };
 
-// El empleado responde la encuesta (sin necesidad de login, viene del correo).
 exports.responderEncuesta = async (req, res) => {
   try {
     const { ticketId } = req.params;
