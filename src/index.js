@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+
 const { verificarToken, permitirRoles } = require("./middleware/auth");
 
 const storage = multer.diskStorage({
@@ -38,11 +39,13 @@ const taskRoutes = require("../backend/routes/task.routes");
 const ticketRoutes = require("../backend/routes/tickets.routes");
 const usuariosRoutes = require("../backend/routes/usuarios.routes");
 const areasRoutes = require("../backend/routes/areas.routes");
+const notificacionesRoutes = require("../backend/routes/notificaciones.routes");
 app.use("/api/reportes", reportRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/areas-it", areasRoutes);
+app.use("/api/notificaciones", notificacionesRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API funcionando desde src/" });
@@ -125,7 +128,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_message", (messageData) => {
+    // messageData = { room, sender, text, timestamp }
     if (!messageData?.room) return;
+    // Reenvía el mensaje a todos los sockets en esa sala (incluyendo al emisor)
     io.to(messageData.room).emit("receive_message", messageData);
   });
 
@@ -133,6 +138,7 @@ io.on("connection", (socket) => {
     console.log(`Socket desconectado: ${socket.id}`);
   });
 });
+
 server.listen(PORT, async () => {
   try {
     await prisma.$connect();
