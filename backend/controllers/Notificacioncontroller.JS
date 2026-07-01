@@ -1,8 +1,17 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+
+// GET /api/notificaciones
+// Devuelve alertas reales para el asesor logueado:
+// 1. Encuestas respondidas en los últimos 7 días
+// 2. Tickets pendientes (no resueltos) asignados al asesor
+// 3. Tickets en riesgo (fechaLimite vencida y no resueltos)
+// 4. Tickets nuevos creados en las últimas 24h
 exports.obtenerNotificaciones = async (req, res) => {
   try {
     const { id: usuarioId, role } = req.usuario;
+
+    // Filtro base: SUPERADMIN ve todo, ADMIN solo los suyos
     const filtroAsignado =
       role === "SUPERADMIN"
         ? {}
@@ -11,6 +20,8 @@ exports.obtenerNotificaciones = async (req, res) => {
     const ahora = new Date();
     const hace7Dias = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000);
     const hace24h = new Date(ahora.getTime() - 24 * 60 * 60 * 1000);
+
+    // 1. Encuestas respondidas recientemente
     const encuestasRespondidas = await prisma.encuestaSatisfaccion.findMany({
       where: {
         estado: "Respondida",
@@ -24,6 +35,7 @@ exports.obtenerNotificaciones = async (req, res) => {
       take: 10,
     });
 
+    // 2. Tickets en riesgo (fecha límite vencida, no resueltos)
     const ticketsEnRiesgo = await prisma.ticket.findMany({
       where: {
         ...filtroAsignado,
@@ -35,6 +47,7 @@ exports.obtenerNotificaciones = async (req, res) => {
       take: 10,
     });
 
+    // 3. Tickets nuevos en las últimas 24h
     const ticketsNuevos = await prisma.ticket.findMany({
       where: {
         ...filtroAsignado,
@@ -45,6 +58,7 @@ exports.obtenerNotificaciones = async (req, res) => {
       take: 10,
     });
 
+    // 4. Tickets pendientes sin resolver (resumen)
     const totalPendientes = await prisma.ticket.count({
       where: {
         ...filtroAsignado,
@@ -52,6 +66,25 @@ exports.obtenerNotificaciones = async (req, res) => {
       },
     });
 
+    // 5. Sub-tareas pendientes asignadas AL usuario (receptor)
+    const subTareasPendientes = await prisma.subTarea.findMany({
+      where: {
+        receptorId: usuarioId,
+        estado: { not: "Completada" },
+      },
+      include: {
+        asignador: { select: { name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
+    // 6. Sub-tareas vencidas asignadas al usuario
+    const subTareasVencidas = subTareasPendientes.filter(
+      (st) => st.fechaLimite && new Date(st.fechaLimite) < ahora
+    );
+
+    // Construir lista de notificaciones unificada
     const notificaciones = [];
 
     ticketsEnRiesgo.forEach((t) => {
@@ -84,9 +117,31 @@ exports.obtenerNotificaciones = async (req, res) => {
       });
     });
 
+    // Sub-tareas vencidas
+    subTareasVencidas.forEach((st) => {
+      notificaciones.push({
+        tipo: "riesgo",
+        titulo: `Sub-tarea vencida: "${st.titulo}"`,
+        detalle: `Asignada por ${st.asignador.name} — venció ${new Date(st.fechaLimite).toLocaleString("es-HN")}`,
+        leido: false,
+      });
+    });
+
+    // Sub-tareas pendientes (no vencidas)
+    subTareasPendientes
+      .filter((st) => !st.fechaLimite || new Date(st.fechaLimite) >= ahora)
+      .forEach((st) => {
+        notificaciones.push({
+          tipo: "subtarea",
+          titulo: `Sub-tarea pendiente: "${st.titulo}"`,
+          detalle: `Asignada por ${st.asignador.name} — Estado: ${st.estado === "EnProceso" ? "En Proceso" : "Pendiente"}`,
+          leido: false,
+        });
+      });
+
     res.json({
       notificaciones,
-      totalPendientes,
+      totalPendientes: totalPendientes + subTareasPendientes.length,
       total: notificaciones.length,
     });
   } catch (error) {
@@ -95,6 +150,8 @@ exports.obtenerNotificaciones = async (req, res) => {
   }
 };
 
+// GET /api/notificaciones/correos
+// Muestra los últimos tickets creados con info del solicitante (para el icono de correo)
 exports.obtenerCorreosRecientes = async (req, res) => {
   try {
     const { id: usuarioId, role } = req.usuario;

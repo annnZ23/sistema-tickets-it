@@ -40,12 +40,15 @@ const ticketRoutes = require("../backend/routes/tickets.routes");
 const usuariosRoutes = require("../backend/routes/usuarios.routes");
 const areasRoutes = require("../backend/routes/areas.routes");
 const notificacionesRoutes = require("../backend/routes/notificaciones.routes");
+const subTareasRoutes = require("../backend/routes/subTareas.routes");
+const { setIo: setIoSubTarea } = require("../backend/controllers/subTareaController");
 app.use("/api/reportes", reportRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/areas-it", areasRoutes);
 app.use("/api/notificaciones", notificacionesRoutes);
+app.use("/api/subtareas", subTareasRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API funcionando desde src/" });
@@ -114,9 +117,13 @@ const io = new Server(server, {
   },
 });
 
+// Inyectar io al controller de sub-tareas para notificaciones en tiempo real
+setIoSubTarea(io);
+
 io.on("connection", (socket) => {
   console.log(`Socket conectado: ${socket.id}`);
 
+  // Sala de área (chat grupal)
   socket.on("join_room", (roomName) => {
     socket.join(roomName);
     console.log(`Socket ${socket.id} se unió a la sala: ${roomName}`);
@@ -127,10 +134,15 @@ io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} salió de la sala: ${roomName}`);
   });
 
+  // Sala personal por usuario — para notificaciones dirigidas
+  socket.on("join_personal_room", (usuarioId) => {
+    const sala = `usuario_${usuarioId}`;
+    socket.join(sala);
+    console.log(`Socket ${socket.id} se unió a sala personal: ${sala}`);
+  });
+
   socket.on("send_message", (messageData) => {
-    // messageData = { room, sender, text, timestamp }
     if (!messageData?.room) return;
-    // Reenvía el mensaje a todos los sockets en esa sala (incluyendo al emisor)
     io.to(messageData.room).emit("receive_message", messageData);
   });
 
@@ -138,6 +150,7 @@ io.on("connection", (socket) => {
     console.log(`Socket desconectado: ${socket.id}`);
   });
 });
+// === FIN SOCKET.IO ===
 
 server.listen(PORT, async () => {
   try {
